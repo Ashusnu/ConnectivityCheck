@@ -26,19 +26,16 @@ public class ConnectivityCheck {
 
     static AsyncTask mMyTask;
     static URL url;
-    private static Handler handler;
 
     private static volatile boolean started = false;
 
-    public ConnectivityCheck() {
-        handler = new Handler();
-    }
 
     public static void checkConnectionState(connectionStateListener listener) {
         if(connectionStateListener == null) {
             connectionStateListener = listener;
             execute();
         }
+
     }
 
 
@@ -68,6 +65,13 @@ public class ConnectivityCheck {
 
         private long downloadStarted = 0;
         private long endTime = 0;
+
+        private Handler handler;
+
+        public DownloadTask() {
+            this.handler = new Handler();
+        }
+
         protected void onPreExecute(){
         }
         protected Bitmap doInBackground(URL...urls){
