@@ -25,7 +25,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ConnectivityCheck.startCheck();
-
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ConnectivityCheck.startCheck();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ConnectivityCheck.stopCheck();
+    }
+
 }
