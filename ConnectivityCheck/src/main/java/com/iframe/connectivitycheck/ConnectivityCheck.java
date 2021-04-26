@@ -37,8 +37,8 @@ public class ConnectivityCheck {
     public static void checkConnectionState(connectionStateListener listener) {
         if(connectionStateListener == null) {
             connectionStateListener = listener;
+            execute();
         }
-        execute();
     }
 
 
