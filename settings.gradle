@@ -1,0 +1,3 @@
+include ':ConnectivityCheck'
+include ':app'
+rootProject.name = "BandwidthCheck"
