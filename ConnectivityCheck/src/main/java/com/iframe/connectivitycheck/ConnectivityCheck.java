@@ -6,6 +6,8 @@ import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -70,11 +72,9 @@ public class ConnectivityCheck {
         private long downloadStarted = 0;
         private long endTime = 0;
 
-        private Handler handler;
         boolean isMetered;
 
         public DownloadTask(Context context) {
-            this.handler = new Handler();
             if (context!= null) {
                 ConnectivityManager cm =
                         (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -98,7 +98,6 @@ public class ConnectivityCheck {
                 return BitmapFactory.decodeStream(bufferedInputStream);
             }catch(IOException e){
                 connectionStateListener.onError(e);
-                ConnectivityCheck.execute();
             }
             return null;
         }
@@ -145,7 +144,7 @@ public class ConnectivityCheck {
                     return;
                 }
 
-                handler.postDelayed(new Runnable() {
+                new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         ConnectivityCheck.execute();
@@ -179,7 +178,7 @@ public class ConnectivityCheck {
                 }
 
 
-                handler.postDelayed(new Runnable() {
+                new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         ConnectivityCheck.execute();

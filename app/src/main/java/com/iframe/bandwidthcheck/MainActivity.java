@@ -5,6 +5,7 @@ import model.ConnectionInfo;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 
 import com.iframe.connectivitycheck.ConnectivityCheck;
 
@@ -16,8 +17,26 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ConnectivityCheck.checkConnectionState(connectionInfo ->
-                Log.d(TAG, "connectionState: " + connectionInfo.getSpeed() + " " + connectionInfo.getConnectionQuality()));
+        TextView info   =   findViewById(R.id.info_txt);
+
+        ConnectivityCheck.checkConnectionState(new ConnectivityCheck.connectionStateListener() {
+            @Override
+            public void connectionState(ConnectionInfo connectionInfo) {
+                Log.d(TAG, "connectionState: " + connectionInfo.getSpeed() + " " + connectionInfo.getConnectionQuality());
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        info.setText("Speed " + connectionInfo.getSpeed() + "\n " + connectionInfo.getConnectionQuality() +"\n" + connectionInfo.getInternetConnectionType());
+                    }
+                });
+            }
+
+            @Override
+            public void onError(Exception e) {
+                // handle exceptions
+                Log.e(TAG, "onError: " +  e.toString() );
+            }
+        }, this);
 
     }
 
