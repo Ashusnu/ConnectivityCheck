@@ -16,14 +16,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ConnectivityCheck.checkConnectionState(new ConnectivityCheck.connectionStateListener() {
-            @Override
-            public void connectionState(ConnectionInfo connectionInfo) {
-                // Do something with connectionInfo
-                Log.d(TAG, "connectionState: " + connectionInfo.getSpeed() + " "+
-                        connectionInfo.getConnectionQuality());
-            }
-        });
+        ConnectivityCheck.checkConnectionState(connectionInfo ->
+                Log.d(TAG, "connectionState: " + connectionInfo.getSpeed() + " " + connectionInfo.getConnectionQuality()));
 
     }
 

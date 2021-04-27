@@ -1,10 +1,11 @@
 package com.iframe.connectivitycheck;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Handler;
-import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -27,13 +28,15 @@ public class ConnectivityCheck {
     static AsyncTask mMyTask;
     static URL url;
 
+    private static  Context context;
+
     private static volatile boolean started = false;
 
 
-    public static void checkConnectionState(connectionStateListener listener) {
+    public static void checkConnectionState(connectionStateListener listener, Context con) {
         if(connectionStateListener == null) {
             connectionStateListener = listener;
-            execute();
+            context = con;
         }
 
     }
@@ -41,10 +44,11 @@ public class ConnectivityCheck {
 
     public interface connectionStateListener {
         void connectionState(ConnectionInfo connectionInfo);
+        void onError(Exception e);
     }
 
     private static void execute(){
-        mMyTask = new DownloadTask().execute(stringToURL());
+        mMyTask = new DownloadTask(context).execute(stringToURL());
     }
 
     public static void startCheck() {
@@ -67,9 +71,17 @@ public class ConnectivityCheck {
         private long endTime = 0;
 
         private Handler handler;
+        boolean isMetered;
 
-        public DownloadTask() {
+        public DownloadTask(Context context) {
             this.handler = new Handler();
+            if (context!= null) {
+                ConnectivityManager cm =
+                        (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                isMetered = cm.isActiveNetworkMetered();
+            } else {
+                connectionStateListener.onError(new CustomException("Context cannot be null.",null));
+            }
         }
 
         protected void onPreExecute(){
@@ -85,12 +97,23 @@ public class ConnectivityCheck {
                 BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
                 return BitmapFactory.decodeStream(bufferedInputStream);
             }catch(IOException e){
-                e.printStackTrace();
+                connectionStateListener.onError(e);
+                ConnectivityCheck.execute();
             }
             return null;
         }
         // When all async task done
         protected void onPostExecute(Bitmap result){
+
+            InternetConnectionType internetConnectionType = InternetConnectionType.UNKNOWN;
+            if (isMetered) {
+                internetConnectionType = InternetConnectionType.SIM;
+            }
+            if (!isMetered) {
+                internetConnectionType = InternetConnectionType.WIFI;
+            }
+
+
             if(result!=null){
                 endTime = System.currentTimeMillis();
 
@@ -100,21 +123,22 @@ public class ConnectivityCheck {
 
                 ConnectionInfo connectionInfo = null;
 
+
+
                 if(kilobytePerSec <= POOR_BANDWIDTH){
-                    connectionInfo = new ConnectionInfo(InternetConnectionType.WIFI, ConnectionQuality.POOR,kilobytePerSec+" kbps",true);
+                    connectionInfo = new ConnectionInfo(internetConnectionType, ConnectionQuality.POOR,kilobytePerSec+" kbps",true);
                 }
 
                 if((kilobytePerSec > POOR_BANDWIDTH) && (kilobytePerSec <= AVERAGE_BANDWIDTH)){
-                    connectionInfo = new ConnectionInfo(InternetConnectionType.WIFI, ConnectionQuality.AVERAGE,kilobytePerSec+" kbps",true);
+                    connectionInfo = new ConnectionInfo(internetConnectionType, ConnectionQuality.AVERAGE,kilobytePerSec+" kbps",true);
                 }
 
 
                 if(kilobytePerSec > AVERAGE_BANDWIDTH){
-                    connectionInfo = new ConnectionInfo(InternetConnectionType.WIFI, ConnectionQuality.GOOD,kilobytePerSec+" kbps",true);
+                    connectionInfo = new ConnectionInfo(internetConnectionType, ConnectionQuality.GOOD,kilobytePerSec+" kbps",true);
                 }
 
                 double speed = result.getByteCount() / timeTakenMills;
-                Log.d(TAG, "onPostExecute: " + kilobytePerSec);
                 connectionStateListener.connectionState(connectionInfo);
 
                 if (!started) {
@@ -136,16 +160,16 @@ public class ConnectivityCheck {
                 ConnectionInfo connectionInfo = null;
 
                 if(kilobytePerSec <= POOR_BANDWIDTH){
-                    connectionInfo = new ConnectionInfo(InternetConnectionType.WIFI, ConnectionQuality.POOR,kilobytePerSec+" kbps",true);
+                    connectionInfo = new ConnectionInfo(internetConnectionType, ConnectionQuality.POOR,kilobytePerSec+" kbps",true);
                 }
 
                 if((kilobytePerSec > POOR_BANDWIDTH) && (kilobytePerSec <= AVERAGE_BANDWIDTH)){
-                    connectionInfo = new ConnectionInfo(InternetConnectionType.WIFI, ConnectionQuality.AVERAGE,kilobytePerSec+" kbps",true);
+                    connectionInfo = new ConnectionInfo(internetConnectionType, ConnectionQuality.AVERAGE,kilobytePerSec+" kbps",true);
                 }
 
 
                 if(kilobytePerSec > AVERAGE_BANDWIDTH){
-                    connectionInfo = new ConnectionInfo(InternetConnectionType.WIFI, ConnectionQuality.GOOD,kilobytePerSec+" kbps",true);
+                    connectionInfo = new ConnectionInfo(internetConnectionType, ConnectionQuality.GOOD,kilobytePerSec+" kbps",true);
                 }
 
                 connectionStateListener.connectionState(connectionInfo);
@@ -169,8 +193,10 @@ public class ConnectivityCheck {
         try {
             url = new URL("https://www.google.com/logos/doodles/2021/vera-gedroits-151st-birthday-6753651837108356.3-l.png");
             return url;
-        } catch (MalformedURLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            connectionStateListener.onError(e);
+            ConnectivityCheck.execute();
         }
         return null;
     }
