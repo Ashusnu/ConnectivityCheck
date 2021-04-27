@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements ConnectivityCheck
 
 Step 3) Finally start and stop connection check
 
-To start connection check call startCheck() onResume()
+To start connection check call startCheck() inside onResume() block
 
 ```
 
@@ -69,7 +69,7 @@ To start connection check call startCheck() onResume()
     }
 ```
 
-To stop connection check call stopCheck() onPause()
+To stop connection check call stopCheck()inside onPause() block
 
 ```
 
