@@ -25,35 +25,21 @@ implementation 'com.github.Ashusnu:ConnectivityCheck:$version'
 
 ```
 
-Step 3) Attach connectivity check listener, This can be done in two ways as below:
-
-a)  Initialize listner in onCreate() method.
+Step 3) Attach connectivity check listener.
 
 ```
+ConnectivityCheck.checkConnectionState(new ConnectivityCheck.connectionStateListener() {
+            @Override
+            public void connectionState(ConnectionInfo connectionInfo) {
+	    	// do something with connectionInfo
+            }
 
- ConnectivityCheck.checkConnectionState(connectionInfo -> {
-           // do something with connectionInfo
- });
-```
+            @Override
+            public void onError(Exception e) {
+                // handle exceptions
+            }
+        }, this);
 
-b) Implementing ConnectivityCheck.connectionStateListener.
-
-```
-
-public class MainActivity extends AppCompatActivity implements ConnectivityCheck.connectionStateListener {
-    
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-   }
-        
-  @Override
-    public void connectionState(ConnectionInfo connectionInfo) {
-        // do something with connectionInfo
-    }      
-      
-}
 ```
 
 Step 3) Finally start and stop connection check
